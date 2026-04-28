@@ -1,6 +1,6 @@
 {
   "name": "mcp-token-saver",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Local MCP server that surfaces real-time Claude.ai subscription usage (5h/7d), forecasts burn rate, and gates expensive operations before they run.",
   "type": "module",
   "license": "MIT",
