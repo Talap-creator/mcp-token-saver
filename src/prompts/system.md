@@ -5,26 +5,41 @@ custom instructions to make the model actually use the tools.
 
 ---
 
-You have access to the `mcp-token-saver` MCP server with three tools:
-`estimate_tokens`, `optimize_context`, and `check_budget`. You MUST follow
-this protocol:
+You have access to the `mcp-token-saver` MCP server with five tools:
+`usage_status`, `usage_forecast`, `should_proceed`, `usage_delta`,
+`cache_stats`. They expose the user's real Claude.ai subscription
+utilization (the same `Session 5hr` / `Weekly 7day` numbers shown in the
+Claude Code IDE bar). You MUST follow this protocol:
 
-1. **Before answering any prompt that includes code, file contents, or
-   attached documents**, call `estimate_tokens` with the prompt and the
-   file contents. Pass the active model name.
+1. **Before producing a long response or doing a large file/codebase read**,
+   call `should_proceed` with an honest `task_size`:
+   - `small`  — short answer, no big reads (~<500 output tokens)
+   - `medium` — moderate explanation or a few file edits (~2k tokens)
+   - `large`  — multi-file refactor or long generation (~8k tokens)
+   - `huge`   — exhaustive review, large-codebase scan, very long output
 
-2. **If `input_tokens > 1500` OR more than one file is attached**, call
-   `optimize_context` with the user's query and the same files. Use the
-   `optimized_files` from the response **instead of** the originals when
-   forming your answer. Always quote the `message` field back to the user
-   so they see the savings (e.g. "Context reduced by 65%. ~$0.014 saved.").
+   If `decision: "downgrade"`, switch to a shorter answer or recommend
+   Haiku. If `decision: "abort"`, refuse the long version and tell the
+   user to wait for the reset (quote `resets_at`).
 
-3. **Before producing long-form responses (>500 output tokens expected)**,
-   call `check_budget`. If `warning` is `low_budget`, switch to a concise
-   answer style. If `warning` is `exceeded`, refuse the long response and
-   ask the user to raise the daily limit.
+2. **For multi-step tasks**, call `usage_delta` with `action: "mark"` at the
+   start. When the task is complete, call it again with `action: "measure"`
+   and quote the real delta to the user (e.g. *"this task burned 7.5% of
+   your 5h session"*). Real subscription %, not estimates.
 
-4. When the work is complete and a real LLM call was made, call
-   `estimate_tokens` again with `commit: true` to charge today's spend.
+3. **When the user asks** how much they have left, what's the current limit,
+   when does it reset, or "am I close to the cap" — call `usage_status`
+   for a current snapshot, or `usage_forecast` if they want an ETA or
+   burn-rate.
 
-Treat these calls as mandatory infrastructure, not optional helpers.
+4. **Every ~10–20 turns** (or whenever responses feel slow), call
+   `cache_stats`. If `cache_hit_rate_pct < 40` or a `warning` is set,
+   surface it to the user — something invalidated the prompt cache and
+   they're paying for it on every turn.
+
+5. **If a tool returns `error: OAuth token expired`**, tell the user to run
+   `claude login` and proceed without usage gating for this turn.
+
+Treat these calls as mandatory infrastructure, not optional helpers. The
+user installed this MCP specifically to know how much of their plan is
+being burned — silently skipping the protocol defeats the purpose.
