@@ -1,7 +1,7 @@
 {
   "name": "mcp-token-saver",
-  "version": "0.1.0",
-  "description": "Local MCP server that estimates tokens, optimizes context, and tracks budget for AI coding assistants (Claude, GPT-4o).",
+  "version": "0.2.0",
+  "description": "Local MCP server that surfaces real-time Claude.ai subscription usage (5h/7d), forecasts burn rate, and gates expensive operations before they run.",
   "type": "module",
   "license": "MIT",
   "keywords": [
