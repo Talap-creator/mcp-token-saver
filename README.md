@@ -2,6 +2,8 @@
 
 > Local MCP server that teaches AI coding assistants to be cheap. Estimates token cost **before** the call, strips irrelevant code from large contexts, and tracks daily spend — all without leaving your machine.
 
+[![npm version](https://img.shields.io/npm/v/mcp-token-saver.svg)](https://www.npmjs.com/package/mcp-token-saver)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-token-saver.svg)](https://www.npmjs.com/package/mcp-token-saver)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A518-brightgreen)](https://nodejs.org)
 [![MCP](https://img.shields.io/badge/MCP-compatible-blue)](https://modelcontextprotocol.io)
@@ -77,33 +79,33 @@ The `CLAUDE.md` you ship with your project tells the model **when** to call each
 
 ## Quick start
 
-### 1. Clone and build
+### 1. Add to Claude Code (one line, no install)
 
-```bash
-git clone https://github.com/Talap-creator/mcp-token-saver.git
-cd mcp-token-saver
-npm install
-npm run build
-```
-
-### 2. Connect to Claude Code
-
-Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global):
+In your project's `.mcp.json` (or `~/.claude/settings.json` for global):
 
 ```json
 {
   "mcpServers": {
     "token-saver": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-token-saver/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "mcp-token-saver"]
     }
   }
 }
 ```
 
-On Windows the path uses forward slashes:
+That's it — `npx` fetches and runs the latest version on demand.
+
+### 2. Or clone and run locally
+
+```bash
+git clone https://github.com/Talap-creator/mcp-token-saver.git
+cd mcp-token-saver
+npm install && npm run build
+```
+Then point `.mcp.json` at `dist/index.js`:
 ```json
-"args": ["C:/Users/you/Github/mcp-token-saver/dist/index.js"]
+{"mcpServers":{"token-saver":{"command":"node","args":["C:/path/to/mcp-token-saver/dist/index.js"]}}}
 ```
 
 ### 3. Activate the protocol
