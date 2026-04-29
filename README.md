@@ -290,22 +290,48 @@ next assistant turn.
 
 ## Activating the protocol
 
-Models won't call optional tools without instruction. Paste this into your project's `CLAUDE.md`:
+Models won't call optional tools without instruction. You have two options:
+
+### Global (recommended) — `~/.claude/CLAUDE.md`
+
+Paste the protocol below into `~/.claude/CLAUDE.md` (Claude Code's user-level
+memory file). It's then loaded into every project automatically — you only
+write it once, and the model uses the tools across all your repos.
+
+### Per-project — `<repo>/CLAUDE.md`
+
+If you only want the protocol in specific projects, paste it into the
+project's `CLAUDE.md` instead.
+
+### The protocol
 
 ```markdown
-You have access to the `mcp-token-saver` MCP server. You MUST follow this protocol:
+You have access to the `token-saver` MCP server with five tools:
+`usage_status`, `usage_forecast`, `should_proceed`, `usage_delta`,
+`cache_stats`. They expose real Claude.ai subscription utilization.
+You MUST follow this protocol:
 
-1. Before producing a long-form response or doing a large file read, call
-   `should_proceed` with an estimated `task_size`. If `decision` is
-   `downgrade`, switch to a shorter answer or to Haiku. If `abort`, refuse
-   and tell the user to wait for the reset.
-2. Before starting a multi-step task, call `usage_delta` with `action="mark"`.
-   When the task is done, call it again with `action="measure"` and quote the
-   real delta to the user (e.g. "this task burned 7.5% of your 5h session").
-3. If the user asks "how much do I have left", call `usage_status` (current)
-   or `usage_forecast` (with ETA).
-4. Periodically (every 10–20 turns) call `cache_stats`. If hit rate <40%,
-   warn the user — something is invalidating the prompt cache.
+1. Before producing a long response or doing a large file/codebase read,
+   call `should_proceed` with an honest `task_size` ("small" / "medium" /
+   "large" / "huge"). If `decision: "downgrade"`, switch to a shorter
+   answer or recommend Haiku. If `decision: "abort"`, refuse and tell the
+   user to wait for the reset (quote `resets_at`).
+2. For multi-step tasks, call `usage_delta` with `action: "mark"` at the
+   start and `action: "measure"` at the end. Quote the real delta to the
+   user (e.g. "this task burned 7.5% of your 5h session").
+3. When the user asks how much they have left, when it resets, or "am I
+   close to the cap" — call `usage_status` (current) or `usage_forecast`
+   (with ETA).
+4. Every ~10–20 turns call `cache_stats`. If `cache_hit_rate_pct < 40` or
+   a `warning` is set, surface it to the user — something invalidated the
+   prompt cache and they're paying full input on every turn.
+5. If a tool returns "OAuth token expired", tell the user to run
+   `claude login` and proceed without usage gating for this turn.
+6. If a `[claude-usage]` line in your context shows `session(5h) >= 80%`,
+   mention it before starting the task. Don't silently proceed into a
+   large task on a hot session.
+
+Treat these calls as mandatory infrastructure, not optional helpers.
 ```
 
 ---
