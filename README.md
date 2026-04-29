@@ -57,6 +57,7 @@ No telemetry, no API keys (uses your existing OAuth token), no remote services.
 - **Pre-flight gating.** `should_proceed` blocks huge operations when usage is hot.
 - **Real per-task cost.** `usage_delta` measures what a task actually consumed.
 - **Cache observability.** `cache_stats` parses Claude Code's session JSONL to surface real cache hit rate.
+- **Adaptive output compression.** Optional hook directive that tells the model to write tighter responses when usage gets hot (>60%), tersest when critical (>95%), and stay normal when cool. No always-on caveman-speak — only compresses when it matters.
 - **Zero configuration.** Reads OAuth token from `~/.claude/.credentials.json`. If you've run `claude login`, you're done.
 - **Local-only.** No telemetry. No external services. The only network call is to `api.anthropic.com` with your own token.
 
@@ -267,9 +268,26 @@ const fs = require("fs"), os = require("os"), path = require("path");
     const u = await r.json();
     const pct = b => b?.utilization != null ? `${b.utilization.toFixed(0)}%` : "—";
     process.stdout.write(`[claude-usage] session(5h): ${pct(u.five_hour)} | weekly(7d): ${pct(u.seven_day)}\n`);
+
+    // Adaptive output compression — hotter session = terser response.
+    const hot = Math.max(u.five_hour?.utilization ?? 0, u.seven_day?.utilization ?? 0);
+    let d = null;
+    if (hot >= 95)      d = "ONE-LINE ANSWERS ONLY. Code or value, no prose.";
+    else if (hot >= 80) d = "MINIMUM TOKENS. Code over prose. No preamble, no summary.";
+    else if (hot >= 60) d = "Respond tersely. Drop filler, hedging, pleasantries.";
+    if (d) process.stdout.write(`[claude-usage-directive] ${d}\n`);
   } catch {}
 })();
 ```
+
+The `[claude-usage-directive]` line is an **adaptive output-compression**
+hint — it tells the model to write tighter responses when your session is
+hot, and stay normal when it's cool. Add this rule to your CLAUDE.md so the
+model treats it as binding:
+
+> When a `[claude-usage-directive]` line appears in your context, treat it
+> as a binding style override for the turn — drop filler, shorten
+> explanation, prefer code over prose to the level it specifies.
 
 Then in `~/.claude/settings.json`:
 ```json

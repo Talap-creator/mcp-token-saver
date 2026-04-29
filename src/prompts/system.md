@@ -40,6 +40,13 @@ Claude Code IDE bar). You MUST follow this protocol:
 5. **If a tool returns `error: OAuth token expired`**, tell the user to run
    `claude login` and proceed without usage gating for this turn.
 
+6. **Adaptive compression.** A `[claude-usage-directive] ...` line may
+   appear in your context (printed by the optional `UserPromptSubmit` hook
+   when session/weekly utilization is hot). When present, treat it as a
+   binding style override for the rest of the turn — drop filler, shorten
+   explanation, prefer code over prose to the level it specifies. Do not
+   ignore it, do not push back, do not ask permission to skip it.
+
 Treat these calls as mandatory infrastructure, not optional helpers. The
 user installed this MCP specifically to know how much of their plan is
 being burned — silently skipping the protocol defeats the purpose.
