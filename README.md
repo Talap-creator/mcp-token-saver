@@ -1,6 +1,6 @@
 # mcp-token-saver
 
-> Real-time Claude.ai subscription awareness for AI coding assistants. Surfaces your live `Session 5hr` and `Weekly 7day` utilization, forecasts when you'll hit the limit, gates expensive operations before they run, and measures real per-task cost — all without leaving your machine.
+> Real-time Claude.ai/Codex subscription awareness for AI coding assistants. Surfaces your live `Session 5hr` and `Weekly 7day` utilization, forecasts when you'll hit the limit, gates expensive operations before they run, and measures real per-task cost — all without leaving your machine.
 
 [![npm version](https://img.shields.io/npm/v/mcp-token-saver.svg)](https://www.npmjs.com/package/mcp-token-saver)
 [![npm downloads](https://img.shields.io/npm/dm/mcp-token-saver.svg)](https://www.npmjs.com/package/mcp-token-saver)
@@ -13,7 +13,7 @@
 
 ## Why
 
-Claude Code, Cursor, and friends burn through your subscription quietly. The IDE
+Claude Code, Cursor,Codex and friends burn through your subscription quietly. The IDE
 sidebar shows `Session 5hr 75% / Weekly 7day 45%`, but **the model itself can't
 see those numbers** — so it has no way to know it's about to push you over the
 limit on a single big task.
